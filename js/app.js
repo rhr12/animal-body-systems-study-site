@@ -12,7 +12,7 @@
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-  const NAV = [["home", "🏠", "Home"], ["learn", "📖", "Learn"], ["cards", "🃏", "Cards"], ["quiz", "✏️", "Quiz"], ["board", "🎯", "Games"]];
+  const NAV = [["home", "🏠", "Home"], ["learn", "📖", "Learn"], ["cards", "🃏", "Cards"], ["quiz", "✏️", "Quiz"], ["play", "🎉", "Party"], ["board", "🎯", "Games"]];
   const navFor = r => (r === "nautilus" ? "board" : r);
   function renderNav(cur) {
     cur = navFor(cur);
@@ -51,6 +51,7 @@
     </section>
     <h2 style="margin-top:26px">Your study path</h2>
     <ol class="path">${steps.map((s, i) => `<li class="${s[3] ? "done" : ""}"><a href="#/${s[0]}"><span class="n">${s[3] ? "✓" : i + 1}</span><span class="t"><b>${s[1]}</b><span>${s[2]}</span></span><span class="go">${s[4]} →</span></a></li>`).join("")}</ol>
+    <a class="path-party card" href="#/play" style="display:block;margin-top:18px;text-decoration:none;color:inherit"><b>🎉 Study with friends</b><br><span class="muted">Create a party code and race through the same questions on different devices.</span></a>
     <div class="card" style="margin-top:18px"><div class="row spread"><b>Quiz mastery</b><span class="stat" style="font-size:1.3rem">${Math.round(100 * m / tot)}%</span></div><div class="bar" style="margin-top:8px"><i style="width:${100 * m / tot}%"></i></div></div>
     <p class="muted" style="margin-top:14px"><button class="chip" id="reset">Reset my progress</button></p>`;
     $("#reset").onclick = () => { if (confirm("Reset all saved progress?")) { ["mastered", "known", "visited", "nautilus"].forEach(x => store.set(x, [])); store.set("board", {}); store.set("nautilus", {}); home(); } };
@@ -237,15 +238,16 @@
   }
 
   /* ---------- router ---------- */
-  const routes = { home, learn, cards, quiz, board, nautilus };
+  const routes = { home, learn, cards, quiz, board, nautilus, play: () => window.Multiplayer.mount(app) };
   function route() {
     cardKeys = null;
+    if (window.Multiplayer) window.Multiplayer.unmount();
     const id = (location.hash.replace(/^#\/?/, "") || "home");
     const r = routes[id] ? id : "home";
     renderNav(r); routes[r](); window.scrollTo(0, 0);
     if (r === "learn") { const v = visited(); v.add("learn"); store.set("visited", [...v]); }
     if (r === "board" || r === "nautilus") app.insertAdjacentHTML("afterbegin", `<nav class="seg" aria-label="Games"><a href="#/board" ${r === "board" ? 'aria-current="page"' : ""}>🎯 Review Game</a><a href="#/nautilus" ${r === "nautilus" ? 'aria-current="page"' : ""}>🐚 Nautilus Essay</a></nav>`);
-    const names = { learn: "Learn", cards: "Flashcards", quiz: "Quiz", board: "Review Game", nautilus: "Nautilus Essay" };
+    const names = { play: "Party", learn: "Learn", cards: "Flashcards", quiz: "Quiz", board: "Review Game", nautilus: "Nautilus Essay" };
     document.title = (names[r] ? names[r] + " · " : "") + "Animal Body Systems Study Hub";
   }
   window.addEventListener("hashchange", route);
