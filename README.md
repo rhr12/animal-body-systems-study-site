@@ -64,6 +64,8 @@ Two ways to deploy:
 1. **Host everything there (simplest).** Deploy this repo to the Node host and open its URL. No extra setup.
 2. **Keep the site on GitHub Pages, run only the server elsewhere.** Set your server's address in `js/config.js` (for example `window.MP_SERVER = "https://my-party.onrender.com";`), and set the server environment variable `ALLOWED_ORIGINS=https://rhr12.github.io` so it accepts connections from the Pages site.
 
+**Render, step by step** (a `render.yaml` is included): sign in at render.com with GitHub, choose **New → Blueprint**, pick this repo, and click **Apply**. When it finishes, open the `https://study-party-….onrender.com` address it shows. That one address is the whole site, with Party mode working. Share it with friends.
+
 No API keys or secrets are used anywhere. Free hosting tiers may sleep when idle, so the first connection can take a while, and a restart clears rooms.
 
 ## Put it online (optional)
