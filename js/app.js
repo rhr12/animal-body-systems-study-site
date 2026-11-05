@@ -12,10 +12,13 @@
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-  const NAV = [["home", "🏠 Home"], ["learn", "📖 Learn"], ["cards", "🃏 Flashcards"], ["quiz", "✏️ Quiz"], ["board", "🎯 Review Game"], ["nautilus", "🐚 Nautilus Essay"]];
+  const NAV = [["home", "🏠", "Home"], ["learn", "📖", "Learn"], ["cards", "🃏", "Cards"], ["quiz", "✏️", "Quiz"], ["board", "🎯", "Games"]];
+  const navFor = r => (r === "nautilus" ? "board" : r);
   function renderNav(cur) {
-    $("#nav").innerHTML = NAV.map(([id, l]) => `<a href="#/${id}" ${id === cur ? 'aria-current="page"' : ""}>${l}</a>`).join("");
+    cur = navFor(cur);
+    $("#nav").innerHTML = NAV.map(([id, i, l]) => `<a href="#/${id}" ${id === cur ? 'aria-current="page"' : ""}><span class="i">${i}</span>${l}</a>`).join("");
   }
+  const visited = () => new Set(store.get("visited", []));
 
   /* ---------- progress ---------- */
   const mastered = () => new Set(store.get("mastered", []));
@@ -23,35 +26,34 @@
   const qid = q => q.q;
 
   /* ---------- HOME ---------- */
+  const SHELL = `<svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92" fill="#0d8a9a"/><path d="M100 100m0 0c0-10 12-14 20-8 12 8 10 28-4 36-18 10-42-2-46-24-4-26 18-48 46-50 34-2 60 24 56 58-4 38-42 62-78 54" fill="none" stroke="#f6c86a" stroke-width="10" stroke-linecap="round"/></svg>`;
   function home() {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const days = Math.round((QUIZ_DATE - today) / 864e5);
     const when = days > 1 ? `Quiz in ${days} days` : days === 1 ? "Quiz is TOMORROW" : days === 0 ? "Quiz is TODAY" : "Quiz date has passed";
-    const m = mastered().size, tot = QUESTIONS.length, k = known().size;
-    const pctQ = Math.round(100 * m / tot), pctC = Math.round(100 * k / CARDS.length);
+    const m = mastered().size, tot = QUESTIONS.length, k = known().size, v = visited();
+    const played = Object.keys(store.get("board", {})).length;
+    const essay = Object.values(store.get("nautilus", {})).some(t => t && t.trim());
+    const steps = [
+      ["learn", "Read the notes", `${NOTES.length} short topics`, v.has("learn"), "Open"],
+      ["cards", "Flip the flashcards", `${k} of ${CARDS.length} marked "Got it"`, k === CARDS.length, "Practice"],
+      ["quiz", "Take the practice quiz", `${m} of ${tot} questions answered correctly`, m === tot, "Start"],
+      ["board", "Play the review game", `${played} of 25 squares played`, played === 25, "Play"],
+      ["nautilus", "Write the nautilus answer", essay ? "In progress" : "Practice the long answer", essay, "Write"]
+    ];
     app.innerHTML = `
     <section class="hero">
-      <span class="pill">📅 ${when} · Nov 6</span>
+      <span class="pill">${when} · Nov 6</span>
       <h1>Animal Body Systems</h1>
-      <p>Study for your Module B · Unit 2 · Lesson 3 quiz. Read the notes, flip flashcards, answer practice questions, and play the review game.</p>
-      <a class="btn" href="#/quiz">Start practice quiz →</a>
-      <span class="big-emoji">🐚</span>
+      <p>Everything for your Module B · Unit 2 · Lesson 3 quiz, in five quick steps.</p>
+      <a class="btn" href="#/quiz">Jump to the quiz</a>
+      ${SHELL}
     </section>
-    <h2 style="margin-top:26px">Your plan</h2>
-    <div class="grid g3">
-      <a class="card tile" href="#/learn"><div class="ico">📖</div><h3>1. Learn</h3><p class="muted">Short notes on every system, tissue, and the nautilus.</p></a>
-      <a class="card tile" href="#/cards"><div class="ico">🃏</div><h3>2. Flashcards</h3><p class="muted">${CARDS.length} cards for vocab and key facts.</p></a>
-      <a class="card tile" href="#/quiz"><div class="ico">✏️</div><h3>3. Quiz yourself</h3><p class="muted">${tot} questions with explanations.</p></a>
-      <a class="card tile" href="#/board"><div class="ico">🎯</div><h3>4. Review game</h3><p class="muted">The Jeopardy-style board from class.</p></a>
-      <a class="card tile" href="#/nautilus"><div class="ico">🐚</div><h3>5. Nautilus essay</h3><p class="muted">Practice the long-answer question.</p></a>
-    </div>
-    <h2 style="margin-top:26px">Your progress</h2>
-    <div class="grid g2">
-      <div class="card"><div class="stat">${pctQ}%</div><p class="muted">of quiz questions answered correctly at least once (${m}/${tot})</p><div class="bar"><i style="width:${pctQ}%"></i></div></div>
-      <div class="card"><div class="stat">${pctC}%</div><p class="muted">of flashcards marked "Got it" (${k}/${CARDS.length})</p><div class="bar"><i style="width:${pctC}%"></i></div></div>
-    </div>
+    <h2 style="margin-top:26px">Your study path</h2>
+    <ol class="path">${steps.map((s, i) => `<li class="${s[3] ? "done" : ""}"><a href="#/${s[0]}"><span class="n">${s[3] ? "✓" : i + 1}</span><span class="t"><b>${s[1]}</b><span>${s[2]}</span></span><span class="go">${s[4]} →</span></a></li>`).join("")}</ol>
+    <div class="card" style="margin-top:18px"><div class="row spread"><b>Quiz mastery</b><span class="stat" style="font-size:1.3rem">${Math.round(100 * m / tot)}%</span></div><div class="bar" style="margin-top:8px"><i style="width:${100 * m / tot}%"></i></div></div>
     <p class="muted" style="margin-top:14px"><button class="chip" id="reset">Reset my progress</button></p>`;
-    $("#reset").onclick = () => { if (confirm("Reset all saved progress?")) { store.set("mastered", []); store.set("known", []); store.set("board", {}); home(); } };
+    $("#reset").onclick = () => { if (confirm("Reset all saved progress?")) { ["mastered", "known", "visited", "nautilus"].forEach(x => store.set(x, [])); store.set("board", {}); store.set("nautilus", {}); home(); } };
   }
 
   /* ---------- LEARN ---------- */
@@ -241,7 +243,10 @@
     const id = (location.hash.replace(/^#\/?/, "") || "home");
     const r = routes[id] ? id : "home";
     renderNav(r); routes[r](); window.scrollTo(0, 0);
-    document.title = (r === "home" ? "" : NAV.find(n => n[0] === r)[1].replace(/^\S+\s/, "") + " · ") + "Animal Body Systems Study Hub";
+    if (r === "learn") { const v = visited(); v.add("learn"); store.set("visited", [...v]); }
+    if (r === "board" || r === "nautilus") app.insertAdjacentHTML("afterbegin", `<nav class="seg" aria-label="Games"><a href="#/board" ${r === "board" ? 'aria-current="page"' : ""}>🎯 Review Game</a><a href="#/nautilus" ${r === "nautilus" ? 'aria-current="page"' : ""}>🐚 Nautilus Essay</a></nav>`);
+    const names = { learn: "Learn", cards: "Flashcards", quiz: "Quiz", board: "Review Game", nautilus: "Nautilus Essay" };
+    document.title = (names[r] ? names[r] + " · " : "") + "Animal Body Systems Study Hub";
   }
   window.addEventListener("hashchange", route);
   route();

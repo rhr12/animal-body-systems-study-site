@@ -7,12 +7,12 @@ Built from Ms. Richmond's Study Guide and the Jeopardy-style review. Quiz date: 
 
 | Tab | What it does |
 | --- | --- |
-| **Home** | Quiz countdown, study plan, saved progress |
+| **Home** | Quiz countdown and a 5-step study path with saved progress |
 | **Learn** | Short, easy notes on every system, tissue, and the chambered nautilus |
 | **Flashcards** | 34 flip cards, filter by topic, mark "Got it" / "Still learning" |
 | **Quiz** | 41 multiple-choice questions, instant feedback with explanations, retry the ones you missed |
-| **Review Game** | The 5x5 Jeopardy board from class, self-scored |
-| **Nautilus Essay** | Practice the long-answer question with a key-word checker and sample answers |
+| **Games → Review Game** | The 5x5 Jeopardy board from class, self-scored |
+| **Games → Nautilus Essay** | Practice the long-answer question with a key-word checker and sample answers |
 
 Progress is saved in your browser (localStorage) on your own device. No account or internet needed.
 
@@ -39,7 +39,7 @@ On GitHub: **Settings → Pages → Deploy from a branch → `main` / root**. Yo
 
 ```
 index.html        page shell
-css/styles.css    design (light + dark mode, phone friendly)
+css/styles.css    ocean theme, sidebar on desktop and tab bar on phone (light + dark mode)
 js/data.js        ALL study content: notes, flashcards, quiz, board, essay
 js/app.js         app logic (views, quiz engine, progress saving)
 ```
