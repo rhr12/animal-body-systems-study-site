@@ -1,0 +1,12 @@
+{
+  "name": "animal-body-systems-study-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MBU2L3 study site with an optional multiplayer party server",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node test/multiplayer.test.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": { "ws": "^8.18.0" }
+}
